@@ -1,5 +1,7 @@
 package model.entities;
 
+import model.exceptions.DomainException;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -10,11 +12,13 @@ public class Reservation {
     private Date checkOut;
 
     private static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-    public Reservation() {
 
-    }
+
 
     public Reservation(int roomNumber, Date checkIn, Date checkOut) {
+        if (!checkOut.after(checkIn)) {
+            throw new DomainException("Check-out date must be after check-in date");
+        }
         this.roomNumber = roomNumber;
         this.checkIn = checkIn;
         this.checkOut = checkOut;
@@ -23,10 +27,10 @@ public class Reservation {
     public int getRoomNumber() {
         return roomNumber;
     }
+
     public void setRoomNumber(int roomNumber) {
         this.roomNumber = roomNumber;
     }
-
 
 
     public Date getCheckIn() {
@@ -38,12 +42,19 @@ public class Reservation {
     }
 
     // long é melhor para se trabalhar com datas
-    public long duration(){
+    public long duration() {
         long diff = checkOut.getTime() - checkIn.getTime();
         return TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
     }
 
-    public void updateDates(Date checkIn, Date checkOut){
+    public void updateDates(Date checkIn, Date checkOut)  {
+        Date now = new Date();
+        if (checkIn.before(now) || checkOut.before(now)) {
+            throw new DomainException( "Reservation dates for update must be future dates");
+        }
+        if (!checkOut.after(checkIn)) {
+            throw new DomainException("Check-out date must be after check-in date");
+        }
         this.checkIn = checkIn;
         this.checkOut = checkOut;
 
@@ -51,15 +62,14 @@ public class Reservation {
 
     @Override
     public String toString() {
-        return "Room number: "
+        return "Room "
                 + roomNumber
-                + ", Check-in date(dd/MM/yyyy): "
+                + ", check-in: "
                 + sdf.format(checkIn)
-                +", Check-out date(dd/MM/yyyy): "
+                + ", check-out: "
                 + sdf.format(checkOut)
                 + ", "
                 + duration()
-                + "nights";
-
+                + " nights";
     }
 }
